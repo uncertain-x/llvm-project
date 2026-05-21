@@ -2119,6 +2119,9 @@ private:
     DiagnoseMisplacedCXX11Attribute(Attrs, CorrectLocation);
   }
 
+  /// try to add the new parse function for APX pragma in here.
+  void ParsePragmaAPX(ParsedAttributes &Attrs);
+
   /// We have found the opening square brackets of a C++11
   /// attribute-specifier in a location where an attribute is not permitted, but
   /// we know where the attributes ought to be written. Parse them anyway, and
@@ -7094,6 +7097,7 @@ private:
   std::unique_ptr<PragmaHandler> PackHandler;
   std::unique_ptr<PragmaHandler> MSStructHandler;
   std::unique_ptr<PragmaHandler> UnusedHandler;
+  std::unique_ptr<PragmaHandler> APXHandler;
   std::unique_ptr<PragmaHandler> WeakHandler;
   std::unique_ptr<PragmaHandler> RedefineExtnameHandler;
   std::unique_ptr<PragmaHandler> FPContractHandler;

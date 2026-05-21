@@ -10000,3 +10000,11 @@ different languages to coexist on the same call stack while each interpreting
 exceptions according to their own rules.
   }];
 }
+
+def APXDeclareVariantDocs : Documentation {
+  let Category = DocCatFunction;
+  let Content = [{
+    The ``#pragma apx`` directive specifies that the following function is executed
+    on an approximate calculation units.
+  }];
+}

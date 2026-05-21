@@ -740,6 +740,10 @@ Parser::ParseExternalDeclaration(ParsedAttributes &Attrs,
 
   Decl *SingleDecl = nullptr;
   switch (Tok.getKind()) {
+  //add the new pragma apx.
+  case tok::annot_pragma_apx:
+    ParsePragmaAPX(Attrs);
+    return ParseExternalDeclaration(Attrs, DeclSpecAttrs);
   case tok::annot_pragma_vis:
     HandlePragmaVisibility();
     return nullptr;

@@ -78,6 +78,34 @@ struct PragmaUnusedHandler : public PragmaHandler {
                     Token &FirstToken) override;
 };
 
+// #pragma APX
+struct PragmaAPXHandler : public PragmaHandler {
+  PragmaAPXHandler() : PragmaHandler("apx") {}
+
+  void HandlePragma(Preprocessor &PP, PragmaIntroducer Introducer,
+                    Token &FirstToken) override{
+						llvm::errs() << "DEBUG: Custom Pragma APX was called!\n";
+                      // first version: don't need to parse the argument, just check for loading new lines.
+                      Token Tok;
+                      PP.Lex(Tok);
+                      if (Tok.isNot(tok::eod)) {
+                        PP.Diag(Tok.getLocation(), diag::warn_pragma_extra_tokens_at_eol) << "pragma apx";
+                        PP.DiscardUntilEndOfDirective();
+                      }
+                      // generate the token for the Parser to implement
+		     		 //creat smart array of pointer including one Token
+		     		  auto TokenArray = std::make_unique<Token[]>(1);
+		     		  TokenArray[0].startToken();
+		     		  TokenArray[0].setKind(tok::annot_pragma_apx);
+		     		  TokenArray[0].setLocation(FirstToken.getLocation());
+		     		  TokenArray[0].setAnnotationEndLoc(Tok.getLocation());
+		     		  TokenArray[0].setAnnotationValue(nullptr);
+
+                      // enter the token stream.
+                      PP.EnterTokenStream(std::move(TokenArray), 1, /*DisableMacroExpansion=*/false, /*IsReinject=*/false);
+                    }
+};
+
 struct PragmaWeakHandler : public PragmaHandler {
   explicit PragmaWeakHandler() : PragmaHandler("weak") {}
   void HandlePragma(Preprocessor &PP, PragmaIntroducer Introducer,
@@ -425,6 +453,9 @@ void Parser::initializePragmaHandlers() {
   GCCVisibilityHandler = std::make_unique<PragmaGCCVisibilityHandler>();
   PP.AddPragmaHandler("GCC", GCCVisibilityHandler.get());
 
+  APXHandler = std::make_unique<PragmaAPXHandler>();
+  PP.AddPragmaHandler(APXHandler.get());
+
   OptionsHandler = std::make_unique<PragmaOptionsHandler>();
   PP.AddPragmaHandler(OptionsHandler.get());
 
@@ -580,6 +611,10 @@ void Parser::resetPragmaHandlers() {
   // Remove the pragma handlers we installed.
   PP.RemovePragmaHandler(AlignHandler.get());
   AlignHandler.reset();
+  // Remove the custome pragma-apx handlers we installed.
+  PP.RemovePragmaHandler(APXHandler.get());
+  APXHandler.reset();
+
   PP.RemovePragmaHandler("GCC", GCCVisibilityHandler.get());
   GCCVisibilityHandler.reset();
   PP.RemovePragmaHandler(OptionsHandler.get());
@@ -1744,6 +1779,18 @@ static void diagnoseUnknownAttributeSubjectSubRule(
     Diagnostic << /*SubRulesSupported=*/1 << SubRules;
   else
     Diagnostic << /*SubRulesSupported=*/0;
+}
+
+//add the new parse function for pragma apx.
+void Parser::ParsePragmaAPX(ParsedAttributes &Attrs){
+  assert(Tok.is(tok::annot_pragma_apx) && "Not a pragma apx token");
+  SourceLocation Loc = Tok.getLocation();
+  ConsumeAnnotationToken();
+
+  //create the new ParsedAttr.
+  IdentifierInfo *AttrName = PP.getIdentifierInfo("apx");
+
+  Attrs.addNew(AttrName, SourceRange(Loc, Loc), AttributeScopeInfo(), nullptr, 0, ParsedAttr::Form::Pragma());
 }
 
 bool Parser::ParsePragmaAttributeSubjectMatchRuleSet(

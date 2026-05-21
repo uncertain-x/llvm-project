@@ -2687,6 +2687,13 @@ void CodeGenModule::SetLLVMFunctionAttributes(GlobalDecl GD,
   }
   F->setAttributes(PAL);
   F->setCallingConv(static_cast<llvm::CallingConv::ID>(CallingConv));
+
+  // add the part of apx for IR
+  if (const Decl *D = GD.getDecl()) {
+    if (D && D->hasAttr<APXDeclareVariantAttr>()) {
+      F->addFnAttr("apx-compute-unit");
+    }
+  }
 }
 
 static void removeImageAccessQualifier(std::string& TyName) {

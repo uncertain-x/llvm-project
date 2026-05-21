@@ -1953,6 +1953,23 @@ def CXXAssume : StmtAttr {
   let HasCustomParsing = 1;
 }
 
+def APXDeclareVariant : InheritableAttr {
+  let Spellings = [Pragma<"", "apx">];
+  let Subjects = SubjectList<[Function]>;
+  let SemaHandler = 1;
+  let HasCustomParsing = 0;
+  let SimpleHandler = 1;
+  let InheritEvenIfAlreadyPresent = 0;
+  let Documentation = [APXDeclareVariantDocs];
+  let Args = [];
+  let AdditionalMembers = [{
+    void printPrettyPragma(raw_ostream & OS, const PrintingPolicy &Policy)
+        const {
+          OS << "#pragma approximate calculation";
+        }
+  }];
+}
+
 def NoMerge : DeclOrStmtAttr {
   let Spellings = [Clang<"nomerge">];
   let Documentation = [NoMergeDocs];
