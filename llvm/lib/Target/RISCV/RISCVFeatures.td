@@ -220,6 +220,14 @@ def HasStdExtM : Predicate<"Subtarget->hasStdExtM()">,
                  AssemblerPredicate<(all_of FeatureStdExtM),
                      "'M' (Integer Multiplication and Division)">;
 
+// Approximate Multiply Extensions
+// second version for reducing compilation command
+
+def FeatureStdExtXapx : RISCVExtension<1, 0, "Approximate Computing Extension">;
+def HasApxCompute : Predicate<"Subtarget->hasFeature(RISCV::FeatureStdExtXapx)">,
+					AssemblerPredicate<(all_of FeatureStdExtXapx),
+					"Approximate Computing Extension">;
+
 // Atomic Extensions
 
 def FeatureStdExtZaamo

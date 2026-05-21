@@ -68,6 +68,15 @@ def REMUW   : ALUW_rr<0b0000001, 0b111, "remuw">,
 } // Predicates = [HasStdExtM, IsRV64]
 
 //===----------------------------------------------------------------------===//
+// Instructions for approxiamte-computing
+//===----------------------------------------------------------------------===//
+
+let Predicates = [HasApxCompute] in {
+def APX_MUL     : ALU_rr<0b0000011, 0b101, "apxmul", Commutable=1>,
+              Sched<[WriteIMul, ReadIMul, ReadIMul]>;
+} // Predicates = [HasApxCompute]
+
+//===----------------------------------------------------------------------===//
 // Pseudo-instructions and codegen patterns
 //===----------------------------------------------------------------------===//
 

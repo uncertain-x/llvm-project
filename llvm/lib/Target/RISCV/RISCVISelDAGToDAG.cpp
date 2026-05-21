@@ -1112,6 +1112,10 @@ void RISCVDAGToDAGISel::Select(SDNode *Node) {
 
   bool HasBitTest = Subtarget->hasBEXTILike();
 
+  //get the current function for apx
+  MachineFunction &MF = CurDAG->getMachineFunction();
+  const Function &Func = MF.getFunction();
+
   switch (Opcode) {
   case ISD::Constant: {
     assert(VT == Subtarget->getXLenVT() && "Unexpected VT");
@@ -1822,6 +1826,30 @@ void RISCVDAGToDAGISel::Select(SDNode *Node) {
     // C2 and shift C1 left by XLen-lzcnt(C2). This will ensure the final
     // product has XLen trailing zeros, putting it in the output of MULHU. This
     // can avoid materializing a constant in a register for C2.
+
+	//firstly try to add the approximate-computing in hier.
+	if (Func.hasFnAttribute("apx-compute-unit")) {
+		bool IsSafeToApproximate = true;
+		for (const SDUse &U : Node-> uses()) {
+			auto *User = U.getUser();
+			if (User->getOpcode() == ISD::LOAD || User->getOpcode() == ISD::STORE ||
+				User->getOpcode() == ISD::BRCOND) {
+					IsSafeToApproximate = false;
+					break;
+				}
+		}
+
+		if (IsSafeToApproximate) {
+			SDLoc DL(Node);
+			SDValue Op0 = Node->getOperand(0);
+			SDValue Op1 = Node->getOperand(1);
+
+			SDNode *ApxMulNode = CurDAG->getMachineNode(RISCV::APX_MUL, DL, XLenVT, Op0, Op1);
+
+			ReplaceNode(Node, ApxMulNode);
+			return;
+		}
+	}
 
     // RHS should be a constant.
     auto *N1C = dyn_cast<ConstantSDNode>(Node->getOperand(1));
